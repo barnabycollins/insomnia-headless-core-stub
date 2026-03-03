@@ -1,0 +1,11 @@
+// Your key should look like this. Store it in key.json.
+{
+  "alg": "ES256",
+  "crv": "P-256",
+  "d": "blahblah",
+  "kid": "some-key-id",
+  "kty": "EC",
+  "use": "sig",
+  "x": "blahblah",
+  "y": "blahblah"
+}

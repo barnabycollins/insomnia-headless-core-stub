@@ -1,0 +1,317 @@
+type: collection.insomnia.rest/5.0
+schema_version: "5.1"
+name: Headless Core Stub
+meta:
+  id: wrk_4f0e987b726243af8e745a2894b7eafe
+  created: 1772197997659
+  modified: 1772547186055
+  description: ""
+collection:
+  - url: "{{ _.TestResourcesHost }}/start"
+    name: Core stub - Start
+    meta:
+      id: req_9b0de40c35094b61ab511398e9eec094
+      created: 1772198007962
+      modified: 1772553185272
+      isPrivate: false
+      description: Creates a JWT representing the client's intent to create a session
+        in the CRI.
+      sortKey: -1772198007962
+    method: POST
+    body:
+      mimeType: application/json
+      text: "{}"
+    headers:
+      - name: Content-Type
+        value: application/json
+      - name: User-Agent
+        value: insomnia/12.3.1
+        description: ""
+        disabled: false
+    authentication:
+      type: iam
+      disabled: false
+      accessKeyId: "{% aws_sso _.AwsProfile, 'accessKeyId' %}"
+      secretAccessKey: "{% aws_sso _.AwsProfile, 'secretAccessKey' %}"
+      sessionToken: "{% aws_sso _.AwsProfile, 'sessionToken' %}"
+      region: "{{ _.AwsRegion }}"
+      service: execute-api
+    scripts:
+      afterResponse: |-
+        const jsonBody = insomnia.response.json();
+
+        insomnia.environment.set("SessionToken", jsonBody.request);
+        insomnia.environment.set("ClientId", jsonBody.client_id);
+
+        insomnia.test("success", () => {
+        	insomnia.expect(insomnia.response.code).to.eql(200);
+        });
+    settings:
+      renderRequestBody: true
+      encodeUrl: true
+      followRedirects: global
+      cookies:
+        send: true
+        store: true
+      rebuildPath: true
+  - url: "{{ _.PrivateApiGatewayHost }}/session"
+    name: Private - OAuth - Create session
+    meta:
+      id: req_7f145f77d4e74dfeaf4071c5535631a4
+      created: 1772198993848
+      modified: 1772553191783
+      isPrivate: false
+      description: Initiates the user journey in the CRI by creating session and
+        person identity entries in DynamoDB.
+      sortKey: -1772198007862
+    method: POST
+    body:
+      mimeType: application/json
+      text: |-
+        {
+        	"request": "{{ _.SessionToken }}",
+        	"client_id": "{{ _.ClientId }}"
+        }
+    headers:
+      - name: Content-Type
+        value: application/json
+      - name: User-Agent
+        value: insomnia/12.3.1
+        description: ""
+        disabled: false
+    scripts:
+      afterResponse: |
+        const jsonBody = insomnia.response.json();
+
+        insomnia.environment.set("SessionId", jsonBody.session_id);
+        insomnia.environment.set("RedirectUri", jsonBody.redirect_uri);
+        insomnia.environment.set("State", jsonBody.state);
+
+        insomnia.test("success", () => {
+        	insomnia.expect(insomnia.response.code).to.eql(201);
+        });
+    settings:
+      renderRequestBody: true
+      encodeUrl: true
+      followRedirects: global
+      cookies:
+        send: true
+        store: true
+      rebuildPath: true
+  - url: "{{ _.PrivateApiGatewayHost }}/check"
+    name: Private - Check HMRC CRI - Provide NINO
+    meta:
+      id: req_7fd7d0a176f640df850131bfca7ac433
+      created: 1772200347517
+      modified: 1772553196889
+      isPrivate: false
+      description: ""
+      sortKey: -1772198007762
+    method: POST
+    body:
+      mimeType: application/json
+      text: |-
+        {
+        	"nino": "AA000000B"
+        }
+    headers:
+      - name: Content-Type
+        value: application/json
+      - name: User-Agent
+        value: insomnia/12.3.1
+        description: ""
+        disabled: false
+      - name: session-id
+        value: "{{ _.SessionId }}"
+        description: ""
+        disabled: false
+    authentication:
+      type: none
+    scripts:
+      afterResponse: |
+        insomnia.test("success", () => {
+        	insomnia.expect(insomnia.response.code).to.eql(200);
+        });
+    settings:
+      renderRequestBody: true
+      encodeUrl: true
+      followRedirects: global
+      cookies:
+        send: true
+        store: true
+      rebuildPath: true
+  - url: "{{ _.PrivateApiGatewayHost }}/authorization"
+    name: Private - OAuth - Get authorization code
+    meta:
+      id: req_a1cf94e5542443b5a933b3c07307c5dd
+      created: 1772200551888
+      modified: 1772553200568
+      isPrivate: false
+      description: Gets the authorization code which can be used with the public API
+        to request an access token for VC retrieval.
+      sortKey: -1772198007662
+    method: GET
+    parameters:
+      - name: redirect_uri
+        value: "{{ _.RedirectUri }}"
+        description: ""
+        disabled: false
+      - name: client_id
+        value: "{{ _.ClientId }}"
+        description: ""
+        disabled: false
+      - name: response_type
+        value: code
+        description: ""
+        disabled: false
+      - name: state
+        value: someState
+        description: ""
+        disabled: false
+      - name: scope
+        value: openid
+        description: ""
+        disabled: false
+    headers:
+      - name: User-Agent
+        value: insomnia/12.3.1
+        description: ""
+        disabled: false
+      - name: session-id
+        value: "{{ _.SessionId }}"
+        description: ""
+        disabled: false
+    scripts:
+      afterResponse: >
+        const jsonBody = insomnia.response.json();
+
+
+        insomnia.environment.set("AuthorizationCode",
+        jsonBody.authorizationCode.value);
+
+
+        insomnia.test("success", () => {
+        	insomnia.expect(insomnia.response.code).to.eql(200);
+        });
+    settings:
+      renderRequestBody: true
+      encodeUrl: true
+      followRedirects: global
+      cookies:
+        send: true
+        store: true
+      rebuildPath: true
+  - url: "{{ _.PublicApiGatewayHost }}/token"
+    name: Public - OAuth - Get access token
+    meta:
+      id: req_369c372a011f4609a34484cc23bc0320
+      created: 1772208461152
+      modified: 1772553202730
+      isPrivate: false
+      description: Generates an access token that can be used to get a VC.
+      sortKey: -1772198007612
+    method: POST
+    body:
+      mimeType: application/x-www-form-urlencoded
+      params:
+        - name: client_assertion_type
+          value: urn:ietf:params:oauth:client-assertion-type:jwt-bearer
+          description: ""
+          disabled: false
+        - name: grant_type
+          value: authorization_code
+          description: ""
+          disabled: false
+        - name: code
+          value: "{{ _.AuthorizationCode }}"
+          description: ""
+          disabled: false
+        - name: redirect_uri
+          value: "{{ _.RedirectUri }}"
+          description: ""
+          disabled: false
+        - name: client_assertion
+          value: "{% jwtCreate 'ES256', _.ClientId, _.ClientId, _.TokenAudience, 0, 300,
+            'UUIDv4', '{}', _.TokenEndpointSigningKeyInPemFormat.key,
+            _.TokenEndpointJwtHeader, '' %}"
+          description: ""
+          disabled: false
+    headers:
+      - name: Content-Type
+        value: application/x-www-form-urlencoded
+      - name: User-Agent
+        value: insomnia/12.3.1
+        description: ""
+        disabled: false
+      - name: x-api-key
+        value: "{{ _.TestResourcesApiKey }}"
+        description: ""
+        disabled: false
+    scripts:
+      afterResponse: |
+        const jsonBody = insomnia.response.json();
+
+        insomnia.environment.set("AccessToken", jsonBody.access_token);
+
+        insomnia.test("success", () => {
+        	insomnia.expect(insomnia.response.code).to.eql(200);
+        });
+    settings:
+      renderRequestBody: true
+      encodeUrl: true
+      followRedirects: global
+      cookies:
+        send: true
+        store: true
+      rebuildPath: true
+  - url: "{{ _.PublicApiGatewayHost }}/credential/issue"
+    name: Public - CRI - Get VC
+    meta:
+      id: req_d1a54b55c6f3403f9e96435789ad68c0
+      created: 1772212100522
+      modified: 1772553207025
+      isPrivate: false
+      description: Calls the CRI-specific function that validates whether the journey
+        was successful and returns a VC.
+      sortKey: -1772198007587
+    method: POST
+    headers:
+      - name: User-Agent
+        value: insomnia/12.3.1
+        description: ""
+        disabled: false
+      - name: x-api-key
+        value: "{{ _.TestResourcesApiKey }}"
+        description: ""
+        disabled: false
+    authentication:
+      type: bearer
+      disabled: false
+      token: "{{ _.AccessToken }}"
+      prefix: ""
+    scripts:
+      afterResponse: |
+        insomnia.test("success", () => {
+        	insomnia.expect(insomnia.response.code).to.eql(200);
+        });
+    settings:
+      renderRequestBody: true
+      encodeUrl: true
+      followRedirects: global
+      cookies:
+        send: true
+        store: true
+      rebuildPath: true
+cookieJar:
+  name: Default Jar
+  meta:
+    id: jar_483eca9f98cf6420d57be9c5a3694c77f1acf927
+    created: 1772197997678
+    modified: 1772553212902
+environments:
+  name: Base Environment
+  meta:
+    id: env_483eca9f98cf6420d57be9c5a3694c77f1acf927
+    created: 1772197997664
+    modified: 1772553212967
+    isPrivate: false

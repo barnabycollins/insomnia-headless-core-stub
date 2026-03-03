@@ -1,0 +1,11 @@
+{
+  "name": "get-pem-key",
+  "version": "1.0.0",
+  "type": "module",
+  "dependencies": {
+    "jwk-to-pem": "2.0.7"
+  },
+  "scripts": {
+    "get-pem": "node get-pem-key.js"
+  }
+}
