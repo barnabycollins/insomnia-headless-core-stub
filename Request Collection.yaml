@@ -206,7 +206,7 @@ collection:
     meta:
       id: req_369c372a011f4609a34484cc23bc0320
       created: 1772208461152
-      modified: 1772553202730
+      modified: 1773335632966
       isPrivate: false
       description: Generates an access token that can be used to get a VC.
       sortKey: -1772198007612
@@ -302,16 +302,66 @@ collection:
         send: true
         store: true
       rebuildPath: true
+  - url: "{{ _.PrivateApiGatewayHost }}/address"
+    name: Private - Address CRI - Provide address
+    meta:
+      id: req_889b0e34a7b748f0a04baf547cfe548d
+      created: 1773335452981
+      modified: 1773335618907
+      isPrivate: false
+      description: ""
+      sortKey: -1772198007712
+    method: PUT
+    body:
+      mimeType: application/json
+      text: |
+        [
+          {
+            "uprn": 100000000000,
+            "buildingNumber": "10",
+            "streetName": "street",
+            "addressLocality": "City",
+            "postalCode": "SW1A 2AA",
+            "addressCountry": "GB",
+            "validFrom": "2000-01-01"
+          }
+        ]
+    headers:
+      - name: Content-Type
+        value: application/json
+      - name: User-Agent
+        value: insomnia/12.3.1
+        description: ""
+        disabled: false
+      - name: session_id
+        value: "{{ _.SessionId }}"
+        description: ""
+        disabled: false
+    authentication:
+      type: none
+    scripts:
+      afterResponse: |
+        insomnia.test("success", () => {
+        	insomnia.expect(insomnia.response.code).to.eql(204);
+        });
+    settings:
+      renderRequestBody: true
+      encodeUrl: true
+      followRedirects: global
+      cookies:
+        send: true
+        store: true
+      rebuildPath: true
 cookieJar:
   name: Default Jar
   meta:
     id: jar_483eca9f98cf6420d57be9c5a3694c77f1acf927
     created: 1772197997678
-    modified: 1772553212902
+    modified: 1773335679285
 environments:
   name: Base Environment
   meta:
     id: env_483eca9f98cf6420d57be9c5a3694c77f1acf927
     created: 1772197997664
-    modified: 1772553212967
+    modified: 1773335679289
     isPrivate: false

@@ -136,7 +136,7 @@ Initiates the user journey in the CRI by creating session and person identity en
 #### [CRI journey]
 
 At this point, the CRI APIs should be used to complete the journey. This is CRI-dependent, but the collection includes
-an example for the Check HMRC API.
+examples for the Check HMRC and Address CRIs.
 
 #### Private - OAuth - Get authorization code
 
